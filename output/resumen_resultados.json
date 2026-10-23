@@ -1,0 +1,199 @@
+{
+  "tope": 20,
+  "n_test": 600,
+  "comparacion": [
+    {
+      "modelo": "Mediana",
+      "MAE": 3.5036,
+      "RMSE": 4.5199,
+      "acc_±1": 0.1933,
+      "acc_±2": 0.3283,
+      "acc_±3": 0.505,
+      "acc_banda": 0.3267,
+      "macroF1_banda": 0.1231,
+      "R2": -0.0351,
+      "sesgo_medio": -0.8326,
+      "tiempo_entrenamiento_s": 0.0075,
+      "tiempo_inferencia_ms_por_CV": 0.0
+    },
+    {
+      "modelo": "TF-IDF + Ridge",
+      "MAE": 0.8977,
+      "RMSE": 1.1767,
+      "acc_±1": 0.6367,
+      "acc_±2": 0.93,
+      "acc_±3": 0.9833,
+      "acc_banda": 0.805,
+      "macroF1_banda": 0.8141,
+      "R2": 0.9298,
+      "sesgo_medio": -0.0478,
+      "tiempo_entrenamiento_s": 2.8318,
+      "tiempo_inferencia_ms_por_CV": 0.9832
+    },
+    {
+      "modelo": "Embeddings + Ridge",
+      "MAE": 1.33,
+      "RMSE": 1.7296,
+      "acc_±1": 0.46,
+      "acc_±2": 0.7933,
+      "acc_±3": 0.9133,
+      "acc_banda": 0.7433,
+      "macroF1_banda": 0.7534,
+      "R2": 0.8484,
+      "sesgo_medio": -0.0011,
+      "tiempo_entrenamiento_s": 4.5847,
+      "tiempo_inferencia_ms_por_CV": 1.1447
+    },
+    {
+      "modelo": "Regla de fechas (bonus)",
+      "MAE": 0.0232,
+      "RMSE": 0.0392,
+      "acc_±1": 1.0,
+      "acc_±2": 1.0,
+      "acc_±3": 1.0,
+      "acc_banda": 0.9933,
+      "macroF1_banda": 0.9938,
+      "R2": 0.9999,
+      "sesgo_medio": -0.0009,
+      "tiempo_entrenamiento_s": 0.0,
+      "tiempo_inferencia_ms_por_CV": 0.189
+    },
+    {
+      "modelo": "DistilBERT (fine-tuned)",
+      "MAE": 0.2634,
+      "RMSE": 0.3476,
+      "acc_±1": 0.9867,
+      "acc_±2": 1.0,
+      "acc_±3": 1.0,
+      "acc_banda": 0.9317,
+      "macroF1_banda": 0.9367,
+      "R2": 0.9939,
+      "sesgo_medio": -0.0191,
+      "tiempo_entrenamiento_s": 126.3285,
+      "tiempo_inferencia_ms_por_CV": 1.1629
+    }
+  ],
+  "ganancia_bert": [
+    {
+      "baseline": "Mediana",
+      "ganancia_MAE": 3.2403,
+      "IC95_inf": 3.0002,
+      "IC95_sup": 3.4868,
+      "significativa": true,
+      "n_boot": 2000
+    },
+    {
+      "baseline": "TF-IDF + Ridge",
+      "ganancia_MAE": 0.6343,
+      "IC95_inf": 0.575,
+      "IC95_sup": 0.6975,
+      "significativa": true,
+      "n_boot": 2000
+    },
+    {
+      "baseline": "Embeddings + Ridge",
+      "ganancia_MAE": 1.0666,
+      "IC95_inf": 0.9774,
+      "IC95_sup": 1.1582,
+      "significativa": true,
+      "n_boot": 2000
+    },
+    {
+      "baseline": "Regla de fechas (bonus)",
+      "ganancia_MAE": -0.2402,
+      "IC95_inf": -0.2588,
+      "IC95_sup": -0.222,
+      "significativa": true,
+      "n_boot": 2000
+    }
+  ],
+  "q2": [
+    {
+      "modelo": "Mediana",
+      "MAE_OCR": 3.5036,
+      "MAE_referencia": 3.5036,
+      "brecha": 0.0,
+      "brecha_%": 0.0
+    },
+    {
+      "modelo": "TF-IDF + Ridge",
+      "MAE_OCR": 0.8977,
+      "MAE_referencia": 0.9055,
+      "brecha": -0.0078,
+      "brecha_%": -0.8607
+    },
+    {
+      "modelo": "Embeddings + Ridge",
+      "MAE_OCR": 1.33,
+      "MAE_referencia": 1.3551,
+      "brecha": -0.0251,
+      "brecha_%": -1.8553
+    },
+    {
+      "modelo": "Regla de fechas (bonus)",
+      "MAE_OCR": 0.0232,
+      "MAE_referencia": 0.0212,
+      "brecha": 0.002,
+      "brecha_%": 9.3707
+    },
+    {
+      "modelo": "DistilBERT (fine-tuned)",
+      "MAE_OCR": 0.2634,
+      "MAE_referencia": 0.2655,
+      "brecha": -0.0022,
+      "brecha_%": -0.8144
+    }
+  ],
+  "q4": [
+    {
+      "atributo": "sex",
+      "grupo": "Female",
+      "n": 303,
+      "MAE": 0.2631,
+      "IC95_inf": 0.2389,
+      "IC95_sup": 0.2892,
+      "error_medio": -0.0284,
+      "y_real_medio": 6.7559
+    },
+    {
+      "atributo": "sex",
+      "grupo": "Male",
+      "n": 297,
+      "MAE": 0.2636,
+      "IC95_inf": 0.2366,
+      "IC95_sup": 0.2911,
+      "error_medio": -0.0096,
+      "y_real_medio": 6.2649
+    },
+    {
+      "atributo": "race",
+      "grupo": "Asian/Pacific Islander",
+      "n": 88,
+      "MAE": 0.2506,
+      "IC95_inf": 0.2117,
+      "IC95_sup": 0.29,
+      "error_medio": -0.0226,
+      "y_real_medio": 6.7778
+    },
+    {
+      "atributo": "race",
+      "grupo": "Black",
+      "n": 50,
+      "MAE": 0.348,
+      "IC95_inf": 0.2763,
+      "IC95_sup": 0.4186,
+      "error_medio": 0.0697,
+      "y_real_medio": 7.9739
+    },
+    {
+      "atributo": "race",
+      "grupo": "White",
+      "n": 462,
+      "MAE": 0.2566,
+      "IC95_inf": 0.2365,
+      "IC95_sup": 0.2773,
+      "error_medio": -0.028,
+      "y_real_medio": 6.3043
+    }
+  ]
+}

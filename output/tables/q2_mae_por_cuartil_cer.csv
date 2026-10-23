@@ -1,0 +1,6 @@
+modelo,Q1 (mejor OCR),Q2,Q3,Q4 (peor OCR)
+DistilBERT (fine-tuned),0.293,0.257,0.233,0.271
+Embeddings + Ridge,1.285,1.405,1.274,1.356
+Mediana,3.883,4.068,3.133,2.931
+Regla de fechas (bonus),0.022,0.021,0.026,0.024
+TF-IDF + Ridge,0.952,0.964,0.856,0.819

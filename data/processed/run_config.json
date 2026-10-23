@@ -1,0 +1,15 @@
+{
+  "seed": 42,
+  "n_por_ocupacion": 800,
+  "n_total": 4000,
+  "tope": 20,
+  "pct_en_tope_20": 0.00825,
+  "pct_en_tope_final": 0.00825,
+  "umbral_confianza": 0.0,
+  "calidad_n": 4000.0,
+  "calidad_CER_medio": 0.010023114607175768,
+  "calidad_CER_mediana": 0.009885842198829103,
+  "calidad_WER_medio": 0.07602700829402734,
+  "calidad_anios_leidos": 1.0,
+  "calidad_conf_media": 0.9907134567918379
+}

@@ -1,0 +1,6 @@
+atributo,grupo,n,MAE,IC95_inf,IC95_sup,error_medio,y_real_medio
+sex,Female,303,0.263,0.239,0.289,-0.028,6.756
+sex,Male,297,0.264,0.237,0.291,-0.01,6.265
+race,Asian/Pacific Islander,88,0.251,0.212,0.29,-0.023,6.778
+race,Black,50,0.348,0.276,0.419,0.07,7.974
+race,White,462,0.257,0.237,0.277,-0.028,6.304

@@ -1,0 +1,6 @@
+modelo,accountants_auditors,construction_laborers,elementary_middle_school_teachers,registered_nurses,software_developers
+DistilBERT (fine-tuned),0.232,0.274,0.26,0.287,0.265
+Embeddings + Ridge,1.236,1.331,1.31,1.308,1.466
+Mediana,3.799,3.665,3.595,3.387,3.068
+Regla de fechas (bonus),0.021,0.021,0.031,0.021,0.022
+TF-IDF + Ridge,0.782,0.823,1.059,1.026,0.795

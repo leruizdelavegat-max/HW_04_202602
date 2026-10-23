@@ -1,0 +1,28 @@
+{
+  "tfidf": {
+    "chars": true,
+    "alpha": 0.3,
+    "MAE_val": 0.8464195545007696,
+    "ngram_palabras": [
+      1,
+      2
+    ],
+    "ngram_caracteres": [
+      3,
+      5
+    ],
+    "digitos": true,
+    "sublinear_tf": true,
+    "min_df": 2
+  },
+  "embeddings": {
+    "encoder": "sentence-transformers/all-MiniLM-L6-v2",
+    "alpha": 0.1,
+    "trozo_palabras": 180,
+    "solape": 30,
+    "agregacion": "promedio"
+  },
+  "regla": {
+    "anio_actual": 2015
+  }
+}

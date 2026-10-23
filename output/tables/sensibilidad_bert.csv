@@ -1,0 +1,4 @@
+modelo,decision,variante,MAE_test,min_entrenamiento
+bert,base,cabeza_cola + mse,0.263351033841071,
+bert,truncamiento,cabeza + mse,0.26159465729021236,4.775427699950001
+bert,perdida,cabeza_cola + huber,0.2660112953752321,4.7241596501166665

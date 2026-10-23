@@ -1,0 +1,15 @@
+modelo,decision,variante,MAE_test,min_entrenamiento
+tfidf_ridge,limpieza,texto_crudo,0.959,
+embeddings_ridge,limpieza,texto_crudo,1.492,
+regla_fechas,limpieza,texto_crudo,0.023,
+tfidf_ridge,limpieza,texto_limpio,0.898,
+embeddings_ridge,limpieza,texto_limpio,1.33,
+regla_fechas,limpieza,texto_limpio,0.023,
+tfidf_ridge,limpieza,texto_final,0.898,
+embeddings_ridge,limpieza,texto_final,1.33,
+regla_fechas,limpieza,texto_final,0.023,
+tfidf_ridge,digitos,con dígitos,0.898,
+tfidf_ridge,digitos,sin dígitos (#),1.862,
+bert,base,cabeza_cola + mse,0.263,
+bert,truncamiento,cabeza + mse,0.262,4.775
+bert,perdida,cabeza_cola + huber,0.266,4.724

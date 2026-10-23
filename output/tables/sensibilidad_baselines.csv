@@ -1,0 +1,12 @@
+modelo,decision,variante,MAE_test
+tfidf_ridge,limpieza,texto_crudo,0.9587770001843683
+embeddings_ridge,limpieza,texto_crudo,1.4923549569979022
+regla_fechas,limpieza,texto_crudo,0.023191827050684503
+tfidf_ridge,limpieza,texto_limpio,0.8976671547615126
+embeddings_ridge,limpieza,texto_limpio,1.3299684541439112
+regla_fechas,limpieza,texto_limpio,0.023191827050684503
+tfidf_ridge,limpieza,texto_final,0.8976671547615126
+embeddings_ridge,limpieza,texto_final,1.3299684541439112
+regla_fechas,limpieza,texto_final,0.023191827050684503
+tfidf_ridge,digitos,con dígitos,0.8976671547615126
+tfidf_ridge,digitos,sin dígitos (#),1.8619449647903912
