@@ -105,9 +105,15 @@ class DatasetRegresion:
 
 def entrenar_bert(textos_tr, y_tr, textos_va, y_va, tope, salida, modelo_base="distilbert-base-uncased",
                   max_len=512, estrategia="cabeza_cola", perdida="mse", lr=3e-5, batch=16, epocas=8,
-                  paciencia=2, seed=config.SEED, log=print):
+                  paciencia=2, seed=config.SEED, log=print, guardar=True):
     """Fine-tuning con AutoModelForSequenceClassification(num_labels=1, problem_type='regression').
-    El target se escala a [0, 1] dividiendo por el tope; early stopping por MAE de validación (en años)."""
+    El target se escala a [0, 1] dividiendo por el tope; early stopping por MAE de validación (en años).
+
+    Los checkpoints intermedios (~800 MB c/u con el optimizador) van a un directorio temporal local, no
+    a Drive; al final solo se guarda el mejor modelo en `salida` (si `guardar`)."""
+    import shutil
+    import tempfile
+
     import torch
     from transformers import (AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding,
                               EarlyStoppingCallback, Trainer, TrainingArguments, set_seed)
@@ -130,15 +136,17 @@ def entrenar_bert(textos_tr, y_tr, textos_va, y_va, tope, salida, modelo_base="d
         def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
             labels = inputs.pop("labels")
             out = model(**inputs)
-            pred = out.logits.squeeze(-1)
+            pred = out.logits.squeeze(-1).float()          # pérdida en fp32 aunque el modelo corra en fp16
+            labels = labels.float()
             if perdida == "huber":     # delta = 1 año en escala [0, 1]
-                loss = torch.nn.functional.huber_loss(pred, labels.to(pred.dtype), delta=1 / tope)
+                loss = torch.nn.functional.huber_loss(pred, labels, delta=1 / tope)
             else:
-                loss = torch.nn.functional.mse_loss(pred, labels.to(pred.dtype))
+                loss = torch.nn.functional.mse_loss(pred, labels)
             return (loss, out) if return_outputs else loss
 
+    temporal = tempfile.mkdtemp(prefix="bert_ckpt_")
     args = TrainingArguments(
-        output_dir=str(salida), learning_rate=lr, per_device_train_batch_size=batch,
+        output_dir=temporal, learning_rate=lr, per_device_train_batch_size=batch,
         per_device_eval_batch_size=batch * 2, num_train_epochs=epocas, weight_decay=0.01,
         warmup_steps=int(0.06 * epocas * -(-len(ds_tr) // batch)), eval_strategy="epoch", save_strategy="epoch", save_total_limit=1,
         load_best_model_at_end=True, metric_for_best_model="mae", greater_is_better=False,
@@ -150,11 +158,11 @@ def entrenar_bert(textos_tr, y_tr, textos_va, y_va, tope, salida, modelo_base="d
     t0 = time.perf_counter()
     trainer.train()
     segundos = time.perf_counter() - t0
-    trainer.save_model(str(salida))
-    tok.save_pretrained(str(salida))
-    import shutil
-    for ck in Path(salida).glob("checkpoint-*"):       # el mejor ya está guardado: liberar Drive
-        shutil.rmtree(ck, ignore_errors=True)
+    if guardar:
+        Path(salida).mkdir(parents=True, exist_ok=True)
+        trainer.save_model(str(salida))                 # load_best_model_at_end: es el mejor por MAE val
+        tok.save_pretrained(str(salida))
+    shutil.rmtree(temporal, ignore_errors=True)
     historia = [h for h in trainer.state.log_history if "eval_mae" in h]
     return trainer.model, tok, segundos, historia
 

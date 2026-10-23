@@ -49,7 +49,7 @@ def quitar_pii(texto, nombres=()):
     t = RE_CALLE.sub(" ", t)
     t = RE_CIUDAD.sub(" ", t)
     for n in nombres:
-        if n and len(str(n)) > 1:
+        if isinstance(n, str) and len(n.strip()) > 1:      # NaN/None no borran la palabra "nan"
             t = re.sub(rf"\b{re.escape(str(n))}\b", " ", t, flags=re.I)
     return t
 

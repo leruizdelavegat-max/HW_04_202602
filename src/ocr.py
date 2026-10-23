@@ -18,9 +18,15 @@ def crear_ocr(device=None):
     ejecutar la celda no falla con «PDX has already been initialized»."""
     if device in _MOTORES:
         return _MOTORES[device]
+    import importlib.util
     import logging
     import os
     os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
+    if importlib.util.find_spec("torch") is not None:
+        # PaddleX importa torch por dentro. Si Paddle carga primero su libnccl (más vieja), torch falla con
+        # "undefined symbol: ncclCommWindowDeregister". Cargando torch antes, queda la NCCL nueva, que
+        # Paddle también acepta.
+        import torch  # noqa: F401
     from paddleocr import PaddleOCR
     for nombre in ("paddlex", "paddleocr", "ppocr"):
         logging.getLogger(nombre).setLevel(logging.ERROR)
