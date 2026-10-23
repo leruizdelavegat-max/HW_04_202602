@@ -8,8 +8,16 @@ import numpy as np
 from . import config
 
 
+_MOTORES = {}
+
+
 def crear_ocr(device=None):
-    """PaddleOCR con motor PaddlePaddle (el que pide el issue). `device`: 'gpu:0' en Colab, 'cpu' local."""
+    """PaddleOCR con motor PaddlePaddle (el que pide el issue). `device`: 'gpu:0' en Colab, 'cpu' local.
+
+    PaddleX solo se inicializa una vez por proceso: el motor se guarda y se reutiliza, así volver a
+    ejecutar la celda no falla con «PDX has already been initialized»."""
+    if device in _MOTORES:
+        return _MOTORES[device]
     import logging
     import os
     os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
@@ -20,13 +28,24 @@ def crear_ocr(device=None):
     if device == "cpu":
         # PaddlePaddle 3.3 + oneDNN falla en CPU ("ConvertPirAttribute2RuntimeAttribute not support")
         extra["enable_mkldnn"] = False
-    return PaddleOCR(
-        text_detection_model_name=config.OCR_DET,
-        text_recognition_model_name=config.OCR_REC,
-        device=device,
-        **config.OCR_OPCIONES,
-        **extra,
-    )
+    try:
+        motor = PaddleOCR(
+            text_detection_model_name=config.OCR_DET,
+            text_recognition_model_name=config.OCR_REC,
+            device=device,
+            **config.OCR_OPCIONES,
+            **extra,
+        )
+    except RuntimeError as e:
+        if "already been initialized" in str(e):
+            raise RuntimeError(
+                "Un intento anterior de crear PaddleOCR falló en esta misma sesión y PaddleX no se puede "
+                "reinicializar. Reinicia la sesión (Entorno de ejecución → Reiniciar sesión) y vuelve a "
+                "ejecutar todo: lo ya descargado se reutiliza. Si falla otra vez, el error que aparezca "
+                "primero es el verdadero.") from e
+        raise
+    _MOTORES[device] = motor
+    return motor
 
 
 def leer_imagen(ocr, ruta):
