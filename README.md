@@ -1,4 +1,4 @@
-# cv_experience_ocr_bert
+# HW_04_202602
 
 **Estimar los años de experiencia laboral a partir de la imagen de un CV**, con PaddleOCR para leer y
 cuatro modelos para estimar: mediana, TF-IDF + Ridge, embeddings + Ridge y DistilBERT ajustado como regresor
@@ -170,7 +170,7 @@ en un puesto senior, subestimar puede descartar a alguien calificado. MAE y erro
 **Cómo correrlos:**
 1. En Colab: *Archivo → Abrir notebook → GitHub* y pega la URL de este repo.
 2. En 🔑 Secretos, crea `HF_TOKEN`. Si usas un fork, cambia `REPO_URL` en la celda de entorno.
-3. Cada notebook clona el repo en `MyDrive/cv_experience_ocr_bert` y retoma si Colab corta la sesión. Al final
+3. Cada notebook clona el repo en `MyDrive/HW_04_202602` y retoma si Colab corta la sesión. Al final
    descarga un zip con las salidas livianas: descomprímelo en la raíz del repo local.
 4. Empieza el notebook 3 en un entorno nuevo (*Desconectar y borrar entorno*), porque PaddlePaddle-GPU y PyTorch
    traen librerías CUDA distintas.
@@ -180,7 +180,7 @@ en un puesto senior, subestimar puede descartar a alguien calificado. MAE y erro
 ```bash
 uv venv --python 3.12
 uv pip install -r requirements.txt
-streamlit run app/streamlit_app.py
+.venv\Scripts\python -m streamlit run app/streamlit_app.py
 ```
 
 La app lee `output/` y `data/processed/`. El estimador en vivo necesita además los modelos:
