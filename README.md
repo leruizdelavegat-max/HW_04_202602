@@ -169,7 +169,7 @@ en un puesto senior, subestimar puede descartar a alguien calificado. MAE y erro
 
 **Cómo correrlos:**
 1. En Colab: *Archivo → Abrir notebook → GitHub* y pega la URL de este repo.
-2. En 🔑 Secretos, crea `HF_TOKEN` y cambia `TU_USUARIO` en la celda de entorno.
+2. En 🔑 Secretos, crea `HF_TOKEN`. Si usas un fork, cambia `REPO_URL` en la celda de entorno.
 3. Cada notebook clona el repo en `MyDrive/cv_experience_ocr_bert` y retoma si Colab corta la sesión. Al final
    descarga un zip con las salidas livianas: descomprímelo en la raíz del repo local.
 4. Empieza el notebook 3 en un entorno nuevo (*Desconectar y borrar entorno*), porque PaddlePaddle-GPU y PyTorch
