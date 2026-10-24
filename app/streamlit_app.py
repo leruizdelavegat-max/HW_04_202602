@@ -210,7 +210,8 @@ with tab1:
          f"{str(bert_cfg.get('perdida', 'mse')).upper()}, target ÷ {TOPE}, {bert_cfg.get('max_len', 512)} tokens "
          f"(cabeza + cola), lr {bert_cfg.get('lr', '—')}, early stopping por MAE de validación."),
         ("Bonus · Regla de fechas", "Texto OCR limpio",
-         "Suma de los rangos laborales fusionando solapamientos; excluye fechas de estudios. No es uno de los 4 modelos."),
+         "Suma de los rangos bajo un título de experiencia, fusionando solapamientos; excluye fechas de estudios, "
+         "actividades y cursos. No es uno de los 4 modelos."),
     ]
     # Tabla Markdown (no st.dataframe): así la columna de configuración se lee completa en cualquier ancho
     st.markdown("| Modelo | Entrada | Configuración |\n|---|---|---|\n"
@@ -222,6 +223,9 @@ with tab1:
         "es casi perfecta y los resultados no se trasladan sin más a CVs reales.\n"
         "- 5 ocupaciones, estadísticas de EE. UU. y solo inglés: en un CV en español o con otro formato las "
         "estimaciones son orientativas.\n"
+        "- Todos los CVs de PopResume tienen historial laboral: los modelos nunca vieron un perfil **sin experiencia** "
+        "(estudiante o egresado) y pueden sobreestimarlo si lista actividades o cursos con fechas. La regla de fechas "
+        "solo cuenta rangos bajo un título de experiencia y la app avisa cuando el CV no lo tiene.\n"
         "- El estimador sirve para **pre-llenar o verificar** un campo, nunca para decidir una contratación.")
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -698,6 +702,14 @@ with tab4:
                             "ámbar ≥ 0,7, rojo < 0,7); número = orden de lectura"
                             + (" (se detectaron dos columnas)." if lect.dos_columnas else "."))
                 with c2:
+                    seccion_laboral = reglas.tiene_seccion_laboral(lect.texto_modelo)
+                    if seccion_laboral is False:
+                        st.warning("**El CV no tiene una sección de experiencia laboral** (p. ej. «Work experience», "
+                                   "«Experiencia laboral», «Prácticas»). Puede tratarse de un perfil sin experiencia, como "
+                                   "un estudiante o egresado. La regla de fechas da 0 porque no cuenta actividades, cursos "
+                                   "ni estudios; los otros modelos se entrenaron solo con CVs con historial laboral y pueden "
+                                   "sobreestimar al ver fechas de actividades extracurriculares o cursos.",
+                                   icon=":material/work_off:")
                     req = {k: v for k, v in preds.items() if k in REQUERIDOS}
                     if not req:
                         st.info("No hay predicciones: faltan los modelos o el CV no tiene texto utilizable.")
@@ -726,9 +738,15 @@ with tab4:
                                      column_config={"rango": "Rango leído", "anios": st.column_config.NumberColumn(
                                          "Años", format="%.2f")})
                         ui.nota(f"Suma sin contar solapamientos (regla de fechas): <b>{num(preds.get('regla_fechas', reglas.estimar(lect.texto_modelo, ANIO_REGLA or 2015, TOPE)), 2)} años</b>. "
-                                "Se excluyen las fechas de estudios. «Present» se cuenta hasta "
+                                + ("Solo se cuentan los rangos bajo un título de experiencia y se excluyen las fechas de "
+                                   "estudios. " if seccion_laboral else
+                                   "No se reconoció ningún título de sección: se cuentan todos los rangos salvo los de "
+                                   "estudios. ") + "«Present» se cuenta hasta "
                                 f"{(ANIO_REGLA or 2015) + .5:.1f}".replace(".", ",")
                                 + ", el año de referencia calibrado con PopResume.")
+                    elif seccion_laboral is False:
+                        ui.nota("Ninguna fecha cuenta como laboral: el CV no tiene sección de experiencia. Las fechas de "
+                                "actividades, cursos, voluntariado o estudios no se suman.")
                     else:
                         ui.nota("No se detectaron rangos de fechas con un formato reconocible («2019.11–2023.01», "
                                 "«Mar 2014 – Jun 2018», «2015 - Present»). La regla da 0 y los modelos se apoyan solo en "

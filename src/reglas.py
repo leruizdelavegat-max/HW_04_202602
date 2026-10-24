@@ -79,10 +79,48 @@ def es_educativo(contexto):
     return bool(RE_EDUCACION.search(contexto))
 
 
+# Secciones: un rango solo es laboral si está bajo un título de experiencia. Sin esto, un estudiante que lista
+# actividades fechadas ("President, Debate Club, 2019–2022") recibía años de experiencia que no tiene.
+# Los títulos se reconocen solos en su línea; "volunteer experience" o "leadership experience" NO son laborales.
+LABORALES = (r"work history|work experience|professional experience|relevant experience|experience|employment"
+             r"(?: history)?|career history|internships?|experiencia(?: laboral| profesional)?|"
+             r"historial laboral|pr[aá]cticas(?: pre ?profesionales| profesionales)?")
+OTRAS = (r"education|academic background|skills|summary|profile|objective|certifications?|projects?|languages|"
+         r"awards|honou?rs|publications|volunteer(?:ing| experience| work)?|(?:extra ?curricular )?activities|"
+         r"extra ?curriculars?|leadership(?: experience)?|courses|relevant coursework|coursework|interests|"
+         r"references|contact|educaci[oó]n|formaci[oó]n(?: acad[eé]mica)?|habilidades|perfil|resumen|objetivo|"
+         r"proyectos?|idiomas|certificaciones|cursos|logros|premios|actividades(?: extra ?curriculares)?|"
+         r"voluntariado|publicaciones|intereses|referencias")
+RE_TITULO_LABORAL = re.compile(rf"^\s*(?:{LABORALES})\s*:?\s*$", re.I)
+RE_TITULO_OTRO = re.compile(rf"^\s*(?:{OTRAS})\s*:?\s*$", re.I)
+
+
+def _seccion(linea):
+    """'laboral', 'otra' o None si la línea no es un título de sección."""
+    if RE_TITULO_LABORAL.match(linea):
+        return "laboral"
+    if RE_TITULO_OTRO.match(linea):       # no se usa "todo en mayúsculas": muchos CVs escriben así los cargos
+        return "otra"
+    return None
+
+
+def tiene_seccion_laboral(texto):
+    """True/False si el CV tiene o no un título de experiencia; None si no se reconoce ningún título."""
+    secciones = {_seccion(l) for l in reparar_fechas(texto).splitlines()} - {None}
+    return ("laboral" in secciones) if secciones else None
+
+
 def _rangos_laborales(lineas):
-    """[(índice_de_línea, match)] de los rangos que no son de estudios (contexto: su línea y la anterior)."""
-    out = []
+    """[(índice_de_línea, match)] de los rangos laborales: dentro de una sección de experiencia y sin palabras de
+    estudios (contexto: su línea y la anterior). Si el texto no tiene ningún título reconocible, se usan todos los
+    rangos no educativos (no hay forma de saber en qué sección están)."""
+    secciones = [_seccion(l) for l in lineas]
+    con_titulos = any(secciones)
+    out, actual = [], None
     for i, linea in enumerate(lineas):
+        actual = secciones[i] or actual
+        if con_titulos and actual != "laboral":
+            continue
         for m in RE_RANGO.finditer(linea):
             if not es_educativo("\n".join(lineas[max(0, i - 1): i + 1])):
                 out.append((i, m))

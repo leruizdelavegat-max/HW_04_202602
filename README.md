@@ -99,7 +99,7 @@ notebook 05.
 | TF-IDF + Ridge | palabras 1–2 **+ caracteres 3–5**, `sublinear_tf`, `min_df=2`, **con dígitos** (los años son la señal) | `alpha = 0,3` (grid 0,3–10 × con/sin caracteres) |
 | Embeddings + Ridge | `all-MiniLM-L6-v2` congelado; trozos de 180 palabras (solape 30) promediados | `alpha = 0,1` |
 | **DistilBERT** | `distilbert-base-uncased`, `AutoModelForSequenceClassification(num_labels=1, problem_type="regression")`, MSE, target ÷ 20, salida × 20 recortada a [0, 20] | early stopping por MAE val |
-| Regla de fechas (bonus) | suma de rangos laborales con solapamientos fusionados | — |
+| Regla de fechas (bonus) | suma de rangos bajo un título de experiencia, con solapamientos fusionados | — |
 
 **BERT:** lr 3e-5 (AdamW, decaimiento 0,01, warmup 6 %), batch 16, máx. 8 épocas (paciencia 2), longitud 512,
 fp16, semilla 42, **Tesla T4, 2,1 min**. Mejor MAE de validación: 0,248 (época 8: el early stopping no llegó a
@@ -243,6 +243,15 @@ fechas (por eso la regla es casi perfecta); en CVs reales la experiencia declara
 debe decidir una contratación**: no mide calidad ni pertinencia de la experiencia, hereda los sesgos del
 generador y un error de ±5 años cambia la carrera de una persona. Uso aceptable: pre-llenado y alerta, con una
 persona que decide.
+
+**Perfiles sin experiencia.** Los 4 000 CVs tienen sección *WORK HISTORY*, así que ningún modelo vio un
+estudiante o egresado sin experiencia. Con un CV sintético de estudiante que lista actividades extracurriculares
+con fechas (2018–2022), BERT estimó 3,2 años y la regla original 4,0, cuando la respuesta correcta es 0. Por eso la
+regla solo cuenta rangos bajo un título de experiencia (*Work experience*, *Internships*, *Experiencia laboral*,
+*Prácticas*…); si el texto no tiene ningún título reconocible, cuenta todos los rangos salvo los de estudios. En
+los 4 000 textos de PopResume da exactamente lo mismo que antes, de modo que las métricas reportadas no cambian.
+La app muestra un aviso cuando el CV subido no tiene sección de experiencia; las predicciones de los modelos
+entrenados no se modifican.
 
 ## 10 · Reproducción paso a paso
 
