@@ -1,4 +1,4 @@
-"""App de 4 pestañas: problema · OCR y EDA · resultados · estimador interactivo.
+r"""App de 4 pestañas: problema · OCR y EDA · resultados · estimador interactivo.
 
 Ejecutar desde la raíz del repo:  .venv\Scripts\python -m streamlit run app/streamlit_app.py
 """
