@@ -271,16 +271,27 @@ cuenta de Google con ~5 GB en Drive.
 ```bash
 uv venv --python 3.12
 uv pip install -r requirements.txt
-.venv\Scripts\python -m streamlit run app/streamlit_app.py
+.venv\Scripts\python -m streamlit run app.py
 ```
 
-La app lee `output/` y `data/processed/` (incluidos en el repo). El **estimador en vivo** necesita además los
+`app.py` (raíz) es el punto de entrada que pide el enunciado; la app está en `app/streamlit_app.py` y sus
+componentes visuales en `app/ui.py`. No necesita GPU: OCR y modelos corren en CPU. Tras editar el código hay que
+reiniciar la app (`.streamlit/config.toml` desactiva el vigilante de archivos).
+
+La app lee `output/` y `data/processed/` (incluidos en el repo). Los indicadores se calculan sobre esos archivos; si
+falta uno, la sección lo indica como pendiente en vez de mostrar un valor. El **estimador en vivo** necesita además los
 modelos: descarga `models/` desde `MyDrive/HW_04_202602/models/` (o `modelos_para_app.zip` del notebook 04)
 para que queden `models/bert_regresor/`, `models/tfidf_ridge.joblib`, etc. `models/` está en `.gitignore`:
 los pesos no van al repo.
 
 Pestañas: (1) Problema y metodología · (2) OCR y análisis exploratorio · (3) Resultados de modelos ·
-(4) Estimador interactivo (subir imagen o PDF, o explorar CVs de test).
+(4) Estimador interactivo (subir imagen o PDF, o explorar CVs de test por ocupación, años reales y tamaño del error).
+
+**Privacidad del estimador** (`src/anonimizar.py`): cada línea del OCR se clasifica como personal (nombre,
+encabezado, correo, teléfono, URL, dirección, documento, secciones de contacto) o no. Los modelos solo reciben las
+líneas no personales. La imagen se muestra **reconstruida** sobre un lienzo blanco con únicamente las cajas de texto
+no personales; las personales son barras oscuras y lo que el OCR no detecta (fotos, firmas, logos) no aparece. El
+archivo subido no se guarda (el PNG temporal del OCR se borra al terminar) y los errores no muestran texto del CV.
 
 ## 12 · Video
 
@@ -290,9 +301,11 @@ Enlace en [`video/link.txt`](video/link.txt) (≤ 5 minutos).
 
 ```
 src/          config, data (muestreo/descarga), ocr (PaddleOCR + orden de lectura), texto (limpieza, fechas, máscara),
-              reglas (regla de fechas + perturbaciones), metricas (bootstrap), modelos (baselines + BERT)
+              reglas (regla de fechas + perturbaciones), metricas (bootstrap), modelos (baselines + BERT),
+              anonimizar (líneas personales, imagen protegida), estimador (pipeline del CV subido)
 notebooks/    01–05 (Colab)
-app/          streamlit_app.py (4 pestañas)
+app.py        punto de entrada:  streamlit run app.py
+app/          streamlit_app.py (4 pestañas), ui.py (estilo y componentes)
 data/         sample_ids.csv, splits/, processed/   (sin imágenes)
 output/       tables/, figures/, predicciones/, ocr_muestra_50.txt
 video/        link.txt

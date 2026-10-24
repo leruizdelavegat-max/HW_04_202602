@@ -97,6 +97,17 @@ def estimar(texto, anio_actual, tope):
     return min(max(fusionar(lab), 0.0), tope)
 
 
+def detalle(texto, anio_actual):
+    """Rangos laborales que usa `estimar`, para mostrarlos: [{rango, inicio, fin, anios}] (años decimales)."""
+    lineas = reparar_fechas(texto).splitlines()
+    out = []
+    for _, m in _rangos_laborales(lineas):
+        ini, fin = _a_anios(m, anio_actual)
+        if 0 <= fin - ini <= 50:
+            out.append({"rango": m.group(0), "inicio": ini, "fin": fin, "anios": fin - ini})
+    return out
+
+
 # ── Perturbaciones para la Pregunta 1 ──────────────────────────────────────────
 # Cada una tiene una respuesta "de reclutador" conocida, que se calcula con la regla sobre el texto perturbado.
 
