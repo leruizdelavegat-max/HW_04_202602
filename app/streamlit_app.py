@@ -4,7 +4,6 @@ Ejecutar desde la raíz del repo:  .venv\Scripts\python -m streamlit run app/str
 """
 import json
 import sys
-import tempfile
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -15,7 +14,7 @@ import streamlit as st
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
-from src import config, metricas, reglas, texto  # noqa: E402
+from src import config, metricas  # noqa: E402
 
 st.set_page_config(page_title="Años de experiencia desde la imagen del CV", page_icon="📄", layout="wide")
 
@@ -229,47 +228,10 @@ def ocr_cpu():
     return ocr.crear_ocr(device="cpu")
 
 
-@st.cache_resource(show_spinner="Cargando modelos…")
+@st.cache_resource(show_spinner="Cargando modelos (la primera vez tarda ~1–2 min en CPU)…")
 def cargar_modelos():
-    import joblib
-    out = {}
-    M = config.MODELOS
-    if (M / "mediana.json").exists():
-        v = json.loads((M / "mediana.json").read_text())["valor"]
-        out["mediana"] = lambda ts: np.full(len(ts), v)
-    if (M / "tfidf_ridge.joblib").exists():
-        tf = joblib.load(M / "tfidf_ridge.joblib")
-        out["tfidf_ridge"] = lambda ts: np.clip(tf.predict(ts), 0, TOPE)
-    if (M / "embeddings_ridge.joblib").exists():
-        from sentence_transformers import SentenceTransformer
-        from src import modelos
-        e = joblib.load(M / "embeddings_ridge.joblib")
-        enc = SentenceTransformer(e["encoder"], device="cpu")
-        out["embeddings_ridge"] = lambda ts: np.clip(e["ridge"].predict(modelos.embeber(ts, enc)), 0, TOPE)
-    if (M / "regla.json").exists():
-        anio = json.loads((M / "regla.json").read_text())["anio_actual"]
-        out["regla_fechas"] = lambda ts: np.array([reglas.estimar(t, anio, TOPE) for t in ts])
-    if (M / "bert_regresor" / "config.json").exists():
-        from transformers import AutoModelForSequenceClassification, AutoTokenizer
-        from src import modelos
-        tok = AutoTokenizer.from_pretrained(M / "bert_regresor")
-        bert = AutoModelForSequenceClassification.from_pretrained(M / "bert_regresor")
-        out["bert"] = lambda ts: modelos.predecir_bert(bert, tok, ts, TOPE, device="cpu")
-    return out
-
-
-def a_imagen(archivo):
-    """Guarda la subida como PNG (PDF → primera página a ~200 dpi)."""
-    destino = Path(tempfile.mkdtemp()) / "cv.png"
-    if archivo.name.lower().endswith(".pdf"):
-        import pypdfium2 as pdfium
-        pdf = pdfium.PdfDocument(archivo.getvalue())
-        pdf[0].render(scale=200 / 72).to_pil().save(destino)
-    else:
-        from PIL import Image
-        import io
-        Image.open(io.BytesIO(archivo.getvalue())).convert("RGB").save(destino)
-    return destino
+    from src import estimador
+    return estimador.cargar_predictores(TOPE)
 
 
 with tab4:
@@ -278,19 +240,17 @@ with tab4:
                "Los modelos se descargan de Drive a `models/` (ver README).")
     archivo = st.file_uploader("CV", type=["png", "jpg", "jpeg", "pdf"])
     if archivo is not None and st.button("Leer y estimar", type="primary"):
-        from src import ocr as ocrmod
-        ruta = a_imagen(archivo)
+        from src import estimador
+        ruta = estimador.a_imagen(archivo.getvalue(), archivo.name)
         with st.spinner("PaddleOCR leyendo…"):
-            lineas, alto, ancho = ocrmod.leer_imagen(ocr_cpu(), ruta)
-            ordenadas, _ = ocrmod.ordenar_lectura(lineas, ancho)
-        limpio, conteo = texto.limpiar(ordenadas, run.get("umbral_confianza", 0.0))
+            lineas, limpio, conteo = estimador.leer(ocr_cpu(), ruta, run.get("umbral_confianza", 0.0))
         modelos_cargados = cargar_modelos()
         c1, c2 = st.columns([2, 3])
         c1.image(str(ruta), caption=f"{len(lineas)} líneas detectadas")
         with c2:
             if not modelos_cargados:
                 st.warning("No hay modelos en `models/`.")
-            preds = {ETIQUETA[k]: float(f([limpio])[0]) for k, f in modelos_cargados.items()}
+            preds = {ETIQUETA[k]: v for k, v in estimador.predecir(modelos_cargados, limpio).items()}
             st.dataframe(pd.Series(preds, name="años estimados").round(1).to_frame(), width="stretch")
             if sum(conteo.values()):
                 st.caption(f"Se enmascararon {sum(conteo.values())} fragmentos que revelaban la respuesta: {conteo}")
