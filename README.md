@@ -291,7 +291,7 @@ cuenta de Google con ~5 GB en Drive.
 | 4 | `notebooks/04_bert_regresor.ipynb` | **GPU T4** | DistilBERT + sensibilidad |
 | 5 | `notebooks/05_evaluacion_preguntas.ipynb` | GPU T4 | tablas, figuras, P1–P4 |
 
-1. Colab → *Archivo → Abrir notebook → GitHub* → este repo, rama `feature/pipeline` (o `main` tras el merge; cambiar `RAMA`).
+1. Colab → *Archivo → Abrir notebook → GitHub* → este repo, rama `main` (los notebooks clonan la rama indicada en `RAMA`).
 2. 🔑 Secretos: `HF_TOKEN` (solo lo usa el notebook 01).
 3. Cada notebook clona el repo en `MyDrive/HW_04_202602`, actualiza **solo el código** al ejecutarse (datos y
    resultados en Drive no se tocan) y retoma si Colab corta la sesión. Al final descarga un zip con las salidas
