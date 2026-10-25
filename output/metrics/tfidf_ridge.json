@@ -1,0 +1,15 @@
+{
+  "particion": "test",
+  "Model": "TF-IDF + Ridge",
+  "MAE (years)": 0.8977,
+  "RMSE (years)": 1.1767,
+  "Acc ±1": 0.6367,
+  "Acc ±2": 0.93,
+  "Acc ±3": 0.9833,
+  "Band accuracy": 0.805,
+  "Band macro-F1": 0.8141,
+  "R²": 0.9298,
+  "Mean error (pred − true)": -0.0478,
+  "Training time (s)": 2.8318,
+  "Inference time per CV (ms)": 0.9832
+}

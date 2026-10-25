@@ -88,8 +88,8 @@ contratación (§9).
 ## 5 · Split
 
 70/15/15 por ID (**2 800 / 600 / 600**), estratificado por ocupación × banda (0–2, 3–5, 6–10, 11–20), semilla 42.
-IDs en [`data/splits/`](data/splits/); todos los modelos leen el mismo split y el test solo se abre en el
-notebook 05.
+[`data/splits/`](data/splits/) `train.csv`, `val.csv` y `test.csv` (`id`, `job`, `exp_year` ya recortado a 0–20,
+generados con `src/split.py`); todos los modelos leen el mismo split y el test solo se abre en el notebook 05.
 
 ## 6 · Modelos
 
@@ -117,7 +117,8 @@ modelo ([`truncamiento_sobrevivencia.csv`](output/tables/truncamiento_sobreviven
 | **DistilBERT** | **0,26** | **0,35** | **99 %** | **100 %** | 100 % | **93 %** | **0,94** | **0,994** | 126 s | 1,16 ms |
 | Regla de fechas (bonus) | 0,02 | 0,04 | 100 % | 100 % | 100 % | 99 % | 0,99 | 0,9999 | 0 s | 0,19 ms |
 
-([`model_comparison.csv`](output/tables/model_comparison.csv); tiempos en la T4 de Colab.)
+([`model_comparison.csv`](output/tables/model_comparison.csv), con las columnas del enunciado más el error
+medio; tiempos en la T4 de Colab. Las mismas métricas por modelo, en JSON, en [`output/metrics/`](output/metrics/).)
 
 **Ganancia de BERT** = MAE(baseline) − MAE(BERT), IC 95 % por bootstrap pareado (2 000 remuestreos)
 ([`ganancia_bert_ic.csv`](output/tables/ganancia_bert_ic.csv)):
@@ -235,6 +236,30 @@ Las decisiones que importan son **de datos** (conservar los años, reparar las f
   operacionalmente despreciable.
 - **Limitaciones:** ver §9.
 
+### ¿Vale la pena BERT?
+
+| Modelo | MAE | Error > 2 años | Entrenamiento | Inferencia/CV | BERT mejora en |
+|---|---:|---:|---:|---:|---:|
+| Mediana | 3,50 | 67 % | 0 s | 0 ms | +3,24 [3,00; 3,49] |
+| TF-IDF + Ridge | 0,90 | 7,0 % | 2,8 s | 0,98 ms | **+0,63** [0,58; 0,70] |
+| Embeddings + Ridge | 1,33 | 20,7 % | 4,6 s | 1,14 ms | +1,07 [0,98; 1,16] |
+| **DistilBERT** | **0,26** | **0 %** | 126 s (GPU T4) | 1,16 ms | — |
+| Regla de fechas (bonus) | 0,02 | 0 % | 0 s | 0,19 ms | **−0,24** [−0,26; −0,22] |
+
+- **Frente a TF-IDF, el mejor baseline: sí.** BERT reduce el MAE en 0,63 años (IC 95 % 0,58–0,70) y los CVs
+  con error mayor a 2 años bajan de 7,0 % a 0 %, que es el umbral que cambia un requisito como «3+ años». El
+  costo extra es pequeño en términos absolutos: 2,1 min de GPU una sola vez y una inferencia del mismo orden
+  (≈ 1 ms/CV en T4). El costo real está en necesitar GPU para entrenar y en operar un modelo de 66 M de parámetros.
+- **Frente a la regla de fechas: no, en PopResume.** La regla es 0,24 años más exacta, no se entrena y es
+  explicable. Además, la P1 muestra que BERT no resta fechas, sino que se apoya en años absolutos y en la
+  cantidad de empleos.
+- **Cuándo aporta BERT:** como respaldo cuando la regla no encuentra rangos (formatos de fecha raros, fechas
+  ilegibles) y como segunda opinión: si BERT y la regla difieren en más de 2 años, el CV se revisa a mano.
+  Antes de usarlo con CVs reales habría que validarlo con ellos; en una prueba con un CV en español (un solo
+  caso, no una medición) BERT se desvió más de 1 año.
+- **Recomendación:** la regla de fechas como estimador principal, BERT como respaldo y alerta, y siempre una
+  persona que decide.
+
 ## 9 · Limitaciones
 
 CVs **sintéticos** de plantilla (el OCR real de escaneos será peor; ningún CV a dos columnas), 5 ocupaciones,
@@ -309,13 +334,21 @@ Enlace en [`video/link.txt`](video/link.txt) (≤ 5 minutos).
 ## Estructura
 
 ```
-src/          config, data (muestreo/descarga), ocr (PaddleOCR + orden de lectura), texto (limpieza, fechas, máscara),
-              reglas (regla de fechas + perturbaciones), metricas (bootstrap), modelos (baselines + BERT),
-              anonimizar (líneas personales, imagen protegida), estimador (pipeline del CV subido)
-notebooks/    01–05 (Colab)
+src/          módulos con los nombres del enunciado (puntos de entrada de cada etapa):
+                download_data · ocr_extraction · ocr_quality · preprocessing · split · baseline_median ·
+                baseline_tfidf · baseline_embeddings · train_bert · evaluation · visualization · utils
+              implementación compartida que esos módulos reutilizan:
+                config, data (muestreo/descarga), ocr (PaddleOCR + orden de lectura), texto (limpieza, fechas,
+                máscara), reglas (regla de fechas + perturbaciones), metricas (bootstrap), modelos (baselines +
+                BERT), anonimizar (líneas personales, imagen protegida), estimador (pipeline del CV subido)
+notebooks/    01–05 (Colab): ejecutan el pipeline con esas funciones y guardan sus salidas
 app.py        punto de entrada:  streamlit run app.py
 app/          streamlit_app.py (4 pestañas), ui.py (estilo y componentes)
-data/         sample_ids.csv, splits/, processed/   (sin imágenes)
-output/       tables/, figures/, predicciones/, ocr_muestra_50.txt
+data/         sample_ids.csv, splits/{train,val,test}.csv, processed/   (sin imágenes)
+output/       tables/, figures/, metrics/, predicciones/, ocr_muestra_50.txt
 video/        link.txt
 ```
+
+Los JSON de OCR por CV (`data/ocr/` en el enunciado) se generaron en Drive (`data/raw/ocr_json/`) y están
+consolidados en `data/processed/ocr.parquet` (texto, confianza y caja por línea). Para regenerarlos en local:
+`python -m src.download_data` y luego `python -m src.ocr_extraction`, que escribe un JSON por CV en `data/ocr/`.

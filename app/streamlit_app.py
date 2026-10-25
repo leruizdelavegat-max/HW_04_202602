@@ -20,7 +20,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 for p in (RAIZ, RAIZ / "app"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
-from src import config, reglas, texto  # noqa: E402
+from src import config, evaluation, reglas, texto  # noqa: E402
 import ui  # noqa: E402
 from ui import ETIQUETA, MODELOS, REQUERIDOS, num, pct  # noqa: E402
 
@@ -340,6 +340,8 @@ with tab2:
 # ════════════════════════════════════════════════════════════════════════════════
 with tab3:
     comp = leer_csv("output/tables/model_comparison.csv")
+    if comp is not None:
+        comp = evaluation.a_formato_interno(comp)          # el CSV usa los nombres de columna del enunciado
     if comp is None or pred_test is None:
         ui.falta("output/tables/model_comparison.csv y predicciones_test.csv", COMO_COLAB)
     else:
@@ -491,6 +493,44 @@ with tab3:
                 t["Significativa"] = t["Significativa"].map({True: "Sí", False: "No"})
                 st.dataframe(t.style.format({c: "{:+.3f}" for c in ["Ganancia de MAE", "IC 95 % inf.", "IC 95 % sup."]}),
                              hide_index=True, width="stretch")
+
+                # ── ¿Vale la pena BERT? Costo frente a beneficio, con los números de las tablas ──────────────
+                st.subheader("¿Vale la pena BERT?")
+                cb = comp.set_index("clave")
+                g = gan.set_index("baseline").ganancia_MAE
+                costo = pd.DataFrame({
+                    "Modelo": [ETIQUETA[k] for k in cb.index],
+                    "MAE": cb.MAE.values,
+                    "Error > 2 años": (1 - cb["acc_±2"]).values,
+                    "Entrenamiento (s)": cb.tiempo_entrenamiento_s.values,
+                    "Inferencia (ms/CV)": cb.tiempo_inferencia_ms_por_CV.values,
+                    "BERT mejora en (años)": [g.get(ETIQUETA[k], np.nan) for k in cb.index]})
+                st.dataframe(costo.style.format({"MAE": "{:.3f}", "Error > 2 años": "{:.1%}", "Entrenamiento (s)": "{:.1f}",
+                                                 "Inferencia (ms/CV)": "{:.2f}", "BERT mejora en (años)": "{:+.2f}"},
+                                                na_rep="—"), hide_index=True, width="stretch")
+                if {"bert", "tfidf_ridge"} <= set(cb.index):
+                    bt, tf = cb.loc["bert"], cb.loc["tfidf_ridge"]
+                    ic_tf = gan.set_index("baseline").loc[ETIQUETA["tfidf_ridge"]]
+                    txt = (f"- **Frente a TF-IDF (el mejor baseline): sí.** BERT reduce el MAE en {num(g[ETIQUETA['tfidf_ridge']], 2)} "
+                           f"años (IC 95 % {num(ic_tf.IC95_inf, 2)}–{num(ic_tf.IC95_sup, 2)}) y los CVs con error mayor a 2 años "
+                           f"pasan de {pct(1 - tf['acc_±2'])} a {pct(1 - bt['acc_±2'])}, que es el umbral que cambia un "
+                           f"requisito como «3+ años». El costo extra es pequeño en términos absolutos: "
+                           f"{num(bt.tiempo_entrenamiento_s / 60, 1)} min de GPU una sola vez (frente a "
+                           f"{num(tf.tiempo_entrenamiento_s, 1)} s) y una inferencia del mismo orden "
+                           f"({num(bt.tiempo_inferencia_ms_por_CV, 2)} frente a {num(tf.tiempo_inferencia_ms_por_CV, 2)} ms/CV, en T4). "
+                           "El costo real está en la GPU para entrenar y en operar un modelo de 66 M de parámetros.\n")
+                    if "regla_fechas" in cb.index:
+                        txt += (f"- **Frente a la regla de fechas: no, en PopResume.** La regla tiene MAE "
+                                f"{num(cb.loc['regla_fechas'].MAE, 3)}, no se entrena, es explicable y BERT es "
+                                f"{num(-g[ETIQUETA['regla_fechas']], 2)} años peor. Además, la P1 muestra que BERT no resta "
+                                "fechas: se apoya en años absolutos y en la cantidad de empleos.\n"
+                                "- **Cuándo aporta BERT:** como respaldo cuando la regla no encuentra rangos (formatos de fecha "
+                                "raros, fechas ilegibles) y como segunda opinión: si BERT y la regla difieren en más de 2 años, "
+                                "el CV se revisa a mano. Antes de usarlo con CVs reales habría que validarlo con ellos: en una "
+                                "prueba con un CV en español (un solo caso, no una medición), BERT se desvió más de 1 año.\n")
+                    txt += ("- **Recomendación:** regla de fechas como estimador principal, BERT como respaldo y alerta, y "
+                            "siempre una persona que decide.")
+                    st.markdown(txt)
 
         elif seccion == "Errores":
             st.subheader("Los 10 mayores errores de BERT, por causa")

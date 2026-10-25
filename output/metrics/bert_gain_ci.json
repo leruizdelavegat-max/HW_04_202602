@@ -1,0 +1,34 @@
+[
+  {
+    "baseline": "Mediana",
+    "ganancia_MAE": 3.2403,
+    "IC95_inf": 3.0002,
+    "IC95_sup": 3.4868,
+    "significativa": true,
+    "n_boot": 2000
+  },
+  {
+    "baseline": "TF-IDF + Ridge",
+    "ganancia_MAE": 0.6343,
+    "IC95_inf": 0.575,
+    "IC95_sup": 0.6975,
+    "significativa": true,
+    "n_boot": 2000
+  },
+  {
+    "baseline": "Embeddings + Ridge",
+    "ganancia_MAE": 1.0666,
+    "IC95_inf": 0.9774,
+    "IC95_sup": 1.1582,
+    "significativa": true,
+    "n_boot": 2000
+  },
+  {
+    "baseline": "Regla de fechas (bonus)",
+    "ganancia_MAE": -0.2402,
+    "IC95_inf": -0.2588,
+    "IC95_sup": -0.222,
+    "significativa": true,
+    "n_boot": 2000
+  }
+]
