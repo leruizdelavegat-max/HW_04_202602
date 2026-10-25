@@ -1,0 +1,5 @@
+baseline,ganancia_MAE,IC95_inf,IC95_sup,significativa,n_boot
+Mediana,3.2403,3.0002,3.4868,True,2000
+TF-IDF + Ridge,0.6343,0.575,0.6975,True,2000
+Embeddings + Ridge,1.0666,0.9774,1.1582,True,2000
+Regla de fechas (bonus),-0.2402,-0.2588,-0.222,True,2000

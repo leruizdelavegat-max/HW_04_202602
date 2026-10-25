@@ -1,0 +1,15 @@
+{
+  "particion": "test",
+  "Model": "DistilBERT (fine-tuned)",
+  "MAE (years)": 0.2634,
+  "RMSE (years)": 0.3476,
+  "Acc ±1": 0.9867,
+  "Acc ±2": 1.0,
+  "Acc ±3": 1.0,
+  "Band accuracy": 0.9317,
+  "Band macro-F1": 0.9367,
+  "R²": 0.9939,
+  "Mean error (pred − true)": -0.0191,
+  "Training time (s)": 126.3285,
+  "Inference time per CV (ms)": 1.1629
+}

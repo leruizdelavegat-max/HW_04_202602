@@ -21,6 +21,18 @@ RE_CALLE = re.compile(
 ESTADOS = ("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ "
            "NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC").split()
 RE_CIUDAD = re.compile(rf"\b[A-Z][a-zA-Z.]*(?:\s[A-Z][a-zA-Z.]*){{0,3}},\s*(?:{'|'.join(ESTADOS)})\b(?:\s+\d{{5}}(?:-\d{{4}})?)?")
+# PopResume escribe la ubicación como "TX, USA": el estado es una columna prohibida, se borra
+RE_ESTADO_USA = re.compile(rf"\b(?:{'|'.join(ESTADOS)})\s*,\s*USA\b")
+
+# ── Fechas ──────────────────────────────────────────────────────────────────────
+# PopResume: "Cargo, Empresa, 2019.11–2023.01". En ~70 % de los CVs el OCR pierde la raya y deja
+# "2019.112023.01" (se vio leyendo los 50 textos); se reinserta para no perder el año final.
+RE_FECHAS_PEGADAS = re.compile(r"((?:19|20)\d{2}\.\d{2})\s*((?:19|20)\d{2}\.\d{1,2})(?!\d)")
+
+
+def reparar_fechas(texto):
+    """'2019.112023.01' → '2019.11–2023.01' (mismo separador que la referencia)."""
+    return RE_FECHAS_PEGADAS.sub(r"\1–\2", texto or "")
 
 # ── Fugas del target ────────────────────────────────────────────────────────────
 NUM = r"(?:\d{1,2}(?:\.\d)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|" \
@@ -42,14 +54,15 @@ RE_ANIO = re.compile(r"(?<!\d)(19[5-9]\d|20[0-3]\d)(?!\d)")
 
 
 def quitar_pii(texto, nombres=()):
-    """Borra correo, URL, teléfono, dirección y el nombre propio del CV (si se conoce)."""
+    """Borra correo, URL, teléfono, dirección, estado ("TX, USA") y el nombre propio del CV (si se conoce)."""
     t = RE_EMAIL.sub(" ", texto)
     t = RE_URL.sub(" ", t)
     t = RE_TEL.sub(" ", t)
     t = RE_CALLE.sub(" ", t)
     t = RE_CIUDAD.sub(" ", t)
+    t = RE_ESTADO_USA.sub(" ", t)
     for n in nombres:
-        if n and len(str(n)) > 1:
+        if isinstance(n, str) and len(n.strip()) > 1:      # NaN/None no borran la palabra "nan"
             t = re.sub(rf"\b{re.escape(str(n))}\b", " ", t, flags=re.I)
     return t
 
@@ -64,8 +77,9 @@ def enmascarar(texto):
 
 
 def unir_lineas(texto):
-    """Repara palabras partidas con guion al final de línea y colapsa espacios."""
-    t = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
+    """Repara palabras partidas con guion al final de línea, fechas pegadas y colapsa espacios."""
+    t = reparar_fechas(texto)
+    t = re.sub(r"(\w)-\n(\w)", r"\1\2", t)
     t = re.sub(r"[ \t]+", " ", t)
     t = re.sub(r"\n\s*\n+", "\n", t)
     return t.strip()
@@ -96,7 +110,8 @@ def limpiar_texto_plano(texto, nombres=()):
 
 
 def anios(texto):
-    return [int(a) for a in RE_ANIO.findall(texto or "")]
+    """Años del texto. Repara antes las fechas pegadas: en '2019.112023.01' el 2023 no es un año aislado."""
+    return [int(a) for a in RE_ANIO.findall(reparar_fechas(texto))]
 
 
 def recall_anios(referencia, ocr):

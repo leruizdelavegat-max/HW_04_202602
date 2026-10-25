@@ -1,0 +1,11 @@
+id,job,y,p_bert,err_bert,regla_estima,CER,recall_anios,dos_columnas,causa_sugerida
+10628,accountants_auditors,3.72,4.96,1.23,3.75,0.01,1.0,False,otra
+05941,registered_nurses,0.19,1.35,1.15,0.17,0.01,1.0,False,otra
+44254,construction_laborers,16.38,17.49,1.11,16.42,0.01,1.0,False,hueco laboral
+17678,elementary_middle_school_teachers,18.26,19.37,1.1,18.25,0.01,1.0,False,otra
+04614,software_developers,5.85,4.75,-1.1,5.83,0.01,1.0,False,hueco laboral
+39682,construction_laborers,18.53,19.6,1.07,18.5,0.01,1.0,False,otra
+55165,software_developers,3.01,4.06,1.06,3.0,0.01,1.0,False,otra
+02628,accountants_auditors,12.72,13.74,1.02,12.75,0.01,1.0,False,hueco laboral
+24040,software_developers,15.45,16.45,0.99,15.42,0.01,1.0,False,hueco laboral
+05773,registered_nurses,18.24,19.21,0.97,18.25,0.01,1.0,False,otra

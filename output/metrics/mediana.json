@@ -1,0 +1,15 @@
+{
+  "particion": "test",
+  "Model": "Mediana",
+  "MAE (years)": 3.5036,
+  "RMSE (years)": 4.5199,
+  "Acc ±1": 0.1933,
+  "Acc ±2": 0.3283,
+  "Acc ±3": 0.505,
+  "Band accuracy": 0.3267,
+  "Band macro-F1": 0.1231,
+  "R²": -0.0351,
+  "Mean error (pred − true)": -0.8326,
+  "Training time (s)": 0.0075,
+  "Inference time per CV (ms)": 0.0
+}

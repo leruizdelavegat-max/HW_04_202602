@@ -1,0 +1,14 @@
+{
+  "hardware": "Tesla T4",
+  "paddleocr": "3.7.0",
+  "paddlepaddle": "3.3.0",
+  "modelo_det": "PP-OCRv5_mobile_det",
+  "modelo_rec": "en_PP-OCRv5_mobile_rec",
+  "cvs_procesados": 4000,
+  "imagenes_fallidas": 0,
+  "segundos_por_cv_media": 0.25911749999999995,
+  "segundos_por_cv_mediana": 0.232,
+  "confianza_media": 0.9907134567918379,
+  "pct_cvs_dos_columnas": 0.0,
+  "lineas_por_cv_media": 14.4155
+}

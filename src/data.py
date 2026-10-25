@@ -9,19 +9,29 @@ from . import config
 
 
 def cargar_metadatos():
-    """Config `text` de PopResume: una fila por CV (60 884). Pesa poco: se baja entera."""
+    """Config `text` de PopResume: una fila por CV (60 884). Pesa poco: se baja entera.
+    No se asume el nombre del split: la ficha del dataset no lo fija; se toma el único que haya."""
     from datasets import load_dataset
-    ds = load_dataset(config.HF_DATASET, "text", split="train")
+    dd = load_dataset(config.HF_DATASET, "text")
+    ds = dd["train"] if "train" in dd else dd[next(iter(dd))]
     df = ds.to_pandas()
-    df["id"] = df["id"].astype(str)
+    df["id"] = df["id"].astype(str).str.strip()
+    faltan = [c for c in ("id", "job", config.TARGET, "text") if c not in df]
+    assert not faltan, f"Columnas esperadas que no están en PopResume: {faltan}. Hay: {list(df.columns)}"
     return df
+
+
+def _clave_id(x):
+    """Ids comparables aunque un archivo los guarde con ceros a la izquierda ('000123') y otro como número (123)."""
+    s = str(x).strip()
+    return (s.lstrip("0") or "0") if s.isdigit() else s
 
 
 def muestrear(meta, n=config.N_POR_OCUPACION, seed=config.SEED):
     """n CVs por ocupación. Dentro de cada ocupación se estratifica por banda de experiencia
     (asignación proporcional), así la muestra conserva la distribución del target."""
     rng = np.random.default_rng(seed)
-    meta = meta.copy()
+    meta = meta.dropna(subset=[config.TARGET]).copy()
     meta["_banda"] = meta[config.TARGET].clip(0, config.TOPE_BASE).map(config.banda)
     partes = []
     for job, g in meta.groupby("job", sort=True):
@@ -46,6 +56,8 @@ def shards_de_imagenes(token=None):
     from huggingface_hub import HfFileSystem
     fs = HfFileSystem(token=token)
     rutas = sorted(fs.glob(f"datasets/{config.HF_DATASET}/data/images/*.parquet"))
+    assert rutas, ("No se encontraron los parquet de imágenes. ¿Aceptaste las condiciones de PopResume en "
+                   "Hugging Face con la misma cuenta del token HF_TOKEN?")
     por_slug = {}
     for r in rutas:
         slug = r.rsplit("/", 1)[-1].rsplit("-", 1)[0]
@@ -59,7 +71,8 @@ def descargar_imagenes(ids, destino, token=None, log=print):
     Guarda cada CV como PNG en `destino/<id>.png`. Es reanudable: salta lo que ya existe."""
     import pyarrow.parquet as pq
     destino.mkdir(parents=True, exist_ok=True)
-    faltan = {i for i in map(str, ids) if not (destino / f"{i}.png").exists()}
+    # clave normalizada → id tal como está en la muestra (así se llama el PNG)
+    faltan = {_clave_id(i): str(i) for i in ids if not (destino / f"{i}.png").exists()}
     log(f"Imágenes por bajar: {len(faltan)} de {len(ids)}")
     if not faltan:
         return
@@ -73,19 +86,21 @@ def descargar_imagenes(ids, destino, token=None, log=print):
                 pf = pq.ParquetFile(fh)
                 for rg in range(pf.num_row_groups):
                     clave = pf.read_row_group(rg, columns=["id", "has_photo"]).to_pandas()
-                    clave["id"] = clave["id"].astype(str)
-                    filas = clave.index[(~clave["has_photo"]) & clave["id"].isin(faltan)]
+                    clave["k"] = clave["id"].map(_clave_id)
+                    sin_foto = clave["has_photo"].map(lambda v: str(v).strip().lower() in ("false", "0"))
+                    filas = clave.index[sin_foto & clave["k"].isin(faltan)]
                     if len(filas) == 0:
                         continue
                     imgs = pf.read_row_group(rg, columns=["image"]).column("image").to_pylist()
                     for f in filas:
                         img = imgs[f]
                         datos = img["bytes"] if isinstance(img, dict) else img
-                        (destino / f"{clave.at[f, 'id']}.png").write_bytes(_a_png(datos))
-                        faltan.discard(clave.at[f, "id"])
+                        k = clave.at[f, "k"]
+                        (destino / f"{faltan[k]}.png").write_bytes(_a_png(datos))
+                        del faltan[k]
             log(f"  {ruta.rsplit('/', 1)[-1]}: faltan {len(faltan)} · {time.perf_counter() - t0:.0f} s")
     if faltan:
-        log(f"⚠ No se encontraron {len(faltan)} ids sin foto: {sorted(faltan)[:10]}…")
+        log(f"⚠ No se encontraron {len(faltan)} ids sin foto: {sorted(faltan.values())[:10]}…")
 
 
 def _a_png(datos):

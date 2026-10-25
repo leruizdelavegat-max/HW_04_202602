@@ -1,0 +1,15 @@
+{
+  "particion": "test",
+  "Model": "Regla de fechas (bonus)",
+  "MAE (years)": 0.0232,
+  "RMSE (years)": 0.0392,
+  "Acc ±1": 1.0,
+  "Acc ±2": 1.0,
+  "Acc ±3": 1.0,
+  "Band accuracy": 0.9933,
+  "Band macro-F1": 0.9938,
+  "R²": 0.9999,
+  "Mean error (pred − true)": -0.0009,
+  "Training time (s)": 0.0,
+  "Inference time per CV (ms)": 0.189
+}

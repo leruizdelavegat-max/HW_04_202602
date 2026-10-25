@@ -1,0 +1,7 @@
+job,n,CER_medio,CER_mediana,WER_medio,anios_leidos,conf_media
+accountants_auditors,800.0,0.0101,0.0099,0.0796,1.0,0.9907
+construction_laborers,800.0,0.0087,0.0085,0.0667,1.0,0.9909
+elementary_middle_school_teachers,800.0,0.0091,0.0088,0.0705,1.0,0.9908
+registered_nurses,800.0,0.0106,0.0105,0.0778,1.0,0.9905
+software_developers,800.0,0.0117,0.0116,0.0856,1.0,0.9907
+TOTAL,4000.0,0.01,0.0099,0.076,1.0,0.9907

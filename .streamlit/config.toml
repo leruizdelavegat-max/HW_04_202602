@@ -1,0 +1,22 @@
+[theme]
+base = "light"
+primaryColor = "#1F4E79"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5F8"
+textColor = "#1B2430"
+font = "sans serif"
+
+[server]
+# Un CV en imagen o PDF no necesita más; evita subir archivos enormes
+maxUploadSize = 15
+# El vigilante de archivos recorre los módulos de transformers y llena el log de errores de torchvision
+# (inofensivos) y consume CPU. Tras editar el código, reinicia la app.
+fileWatcherType = "none"
+
+[client]
+# Solo el tipo de error, nunca la traza: una traza podría incluir texto del CV subido
+showErrorDetails = "type"
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
